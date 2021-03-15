@@ -44,11 +44,10 @@ class ModifyTransform extends Transform {
   @Override
   void transform(TransformInvocation transformInvocation)
       throws TransformException, InterruptedException, IOException {
+    super.transform(transformInvocation)
     //        准备工作
-    //        转化器     99号技师输入    给钱 199块           迎送99号技师 带着笑脸出去的99号技师  输出
     //   project java 工程  java--class路径  class字节码加载内存
     //
-    super.transform(transformInvocation)
     project.android.bootClasspath.each {
       pool.appendClassPath(it.absolutePath)
     }
@@ -58,7 +57,6 @@ class ModifyTransform extends Transform {
     //         class     ----》  jar  for
     transformInvocation.inputs.each {
       //            遍历jar包所有的类
-      //            处理 1   不处理 2  不处理
       it.jarInputs.each {
         pool.insertClassPath(it.file.absolutePath)
         //                设定输出参数，编译 的输入与输出一一对应
@@ -84,7 +82,7 @@ class ModifyTransform extends Transform {
         println "copy directory: " + it.file.absolutePath
         println "dest directory: " + dest.absolutePath
         // 将input的目录复制到output指定目录
-       FileUtils.copyDirectory(it.file, dest)
+        FileUtils.copyDirectory(it.file, dest)
       }
     }
   }
