@@ -11,51 +11,76 @@ import org.gradle.api.Project
 
 class ModifyTransform extends Transform {
 
-  //    字节码池子
+  /**
+   * javassist的类池，使用ClassPool类可以跟踪和控制所操作的类,它的工作方式与 JVM类装载器非常相似
+   */
   def pool = ClassPool.default
 
-  //    把class字节码加载到内存
+  /**
+   * 把class字节码加载到内存
+   */
   def project
 
   ModifyTransform(Project project) {
     this.project = project
   }
 
+  /**
+   * 用于指明本Transform的名字，这个 name 并不是最终的名字，在TransformManager 中会对名字再处理
+   */
   @Override
   String getName() {
     return "jackfruit"
   }
 
+  /**
+   * 用于指明Transform的输入类型，可以作为输入过滤的手段
+   *  TransformManager.CONTENT_CLASS：表示要处理编译后的字节码，可能是 jar 包也可能是目录
+   *  TransformManager.CONTENT_RESOURCES：表示处理标准的 java 资源
+   */
   @Override
   Set<QualifiedContent.ContentType> getInputTypes() {
     return TransformManager.CONTENT_CLASS
   }
 
+  /**
+   * 用于指明Transform的作用域
+   * TransformManager.PROJECT：只处理当前项目
+   * TransformManager.SUB_PROJECTS：只处理子项目
+   * TransformManager.PROJECT_LOCAL_DEPS：只处理当前项目的本地依赖,例如jar, aar
+   * TransformManager.EXTERNAL_LIBRARIES：只处理外部的依赖库
+   * TransformManager.PROVIDED_ONLY：只处理本地或远程以provided形式引入的依赖库
+   * TransformManager.TESTED_CODE：只处理测试代码
+   */
   @Override
   Set<? super QualifiedContent.Scope> getScopes() {
     return TransformManager.SCOPE_FULL_PROJECT
   }
 
+  /**
+   * 用于指明是否是增量构建。
+   */
   @Override
   boolean isIncremental() {
     return false
   }
 
+  /**
+   * 核心方法，用于自定义处理,在这个方法中我们可以拿到要处理的.class文件路径、jar包路径、输出文件路径等，
+   * 拿到文件之后就可以对他们进行操作
+   */
   @Override
   void transform(TransformInvocation transformInvocation)
       throws TransformException, InterruptedException, IOException {
-    //        准备工作
-    //        转化器     99号技师输入    给钱 199块           迎送99号技师 带着笑脸出去的99号技师  输出
-    //   project java 工程  java--class路径  class字节码加载内存
-    //
     super.transform(transformInvocation)
+    //利用Transform-api处理.class文件有个标准流程，拿到输入路径->取出要处理的文件->处理文件->移动文件到输出路径
     project.android.bootClasspath.each {
       pool.appendClassPath(it.absolutePath)
     }
 
     //          加载内存
     //        遍历上一个transform   传递进来的 文件
-    //         class     ----》  jar  for
+    //         class     ----》  jar
     transformInvocation.inputs.each {
       //            遍历jar包所有的类
       //            处理 1   不处理 2  不处理
@@ -84,7 +109,7 @@ class ModifyTransform extends Transform {
         println "copy directory: " + it.file.absolutePath
         println "dest directory: " + dest.absolutePath
         // 将input的目录复制到output指定目录
-       FileUtils.copyDirectory(it.file, dest)
+        FileUtils.copyDirectory(it.file, dest)
       }
     }
   }
