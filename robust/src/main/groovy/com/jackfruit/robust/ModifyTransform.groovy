@@ -83,7 +83,6 @@ class ModifyTransform extends Transform {
     //         class     ----》  jar
     transformInvocation.inputs.each {
       //            遍历jar包所有的类
-      //            处理 1   不处理 2  不处理
       it.jarInputs.each {
         pool.insertClassPath(it.file.absolutePath)
         //                设定输出参数，编译 的输入与输出一一对应
